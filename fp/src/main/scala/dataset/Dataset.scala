@@ -75,12 +75,11 @@ object Dataset {
       * @param input the list of commits to process.
       * @return 5 tuples containing the file extension and frequency of the most frequently appeared file types, ordered descendingly.
       */
-    def topFileFormats(input: List[Commit]): List[(String, Int)] = ???
-//        print(input.map(x => x.files.flatMap(y => y.filename)
-//          .filter(_.matches("(*[.]*)"))))
-//
-//        val a: List[(String, Int)] = ("a",1):: Nil
-//        a
-//    }
-//        .endsWith(".js")))).groupBy(_._1))
+    def topFileFormats(input: List[Commit]): List[(String, Int)] = {
+        val res = input.map(x => x.files.map(y => y.filename))
+
+        val reg = """([a-zA-Z0-9\-]+)$""".r
+        input.flatMap(x => x.files.flatMap(y => y.filename)).flatMap(y => reg.findAllIn(y)).groupBy(x => x)
+        .map(z => (z._1, z._2.length)).toSeq.sortBy(_._2).reverse.take(5).toList
+    }
 }
