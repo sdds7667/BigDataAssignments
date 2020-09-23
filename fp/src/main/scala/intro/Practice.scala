@@ -19,8 +19,8 @@ object Practice {
       * @return the first n items of xs.
       */
     def firstN(xs: List[Int], n: Int): List[Int] = xs match {
-        case Nil => List.empty[Int]
-        case i :: tail => if (n != 0) i :: firstN(tail, n-1) else List.empty[Int]
+        case Nil => Nil
+        case i :: tail => if (n != 0) i :: firstN(tail, n-1) else Nil
     }
 
 
@@ -35,7 +35,7 @@ object Practice {
       */
     def maxValue(xs: List[Int]): Int = xs match {
         case Nil => Int.MinValue
-        case i :: tail => i max maxValue(tail)
+        case i :: tail => intMax(i, maxValue(tail))
     }
 
 
