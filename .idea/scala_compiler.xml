@@ -4,7 +4,7 @@
     <profile name="Maven 1" modules="fp-template">
       <parameters>
         <parameter value="-dependencyfile" />
-        <parameter value="C:\Users\inplm\Documents\School\2020-2021\Q1\CSE2520 BigData\Assignment2\fp\target/.scala_dependencies" />
+        <parameter value="C:\Users\mihai\Downloads\BigDataAssignments\fp\target/.scala_dependencies" />
       </parameters>
     </profile>
   </component>

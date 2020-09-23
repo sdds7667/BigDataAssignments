@@ -24,7 +24,7 @@ object Dataset {
       * @return the average amount of additions in the commits that have stats data.
       */
     def avgAdditions(input: List[Commit]): Int = {
-        val xs = input.flatMap((x) => x.stats).map((x) => x.additions)
+        val xs = input.flatMap(x => x.stats).map(x => x.additions)
         xs.sum / xs.length
     }
 
@@ -38,7 +38,11 @@ object Dataset {
     def jsTime(input: List[Commit]) = input.map(x => (new SimpleDateFormat("HH").format(x.commit.committer.date),
       new SimpleDateFormat("HH").format(x.commit.author.date)))
 
-      //.map(x => (new SimpleDateFormat("HH").format(x.commit.committer.date).toInt,
+    //    cat 1000_commits.json | jq '.' -s | jq '. | group_by(.commit.author.date | strptime("%Y-%m-%dT%H:%M:%S%Z") | .[3]) | .[] |
+    //    map(.files[].filename | select(endswith(".js"))) | length' | sort -nk 1 | tail -n 1
+
+
+    //.map(x => (new SimpleDateFormat("HH").format(x.commit.committer.date).toInt,
       //  x.files.flatMap(y => y.filename).count(_.endsWith(".js")))).groupBy(_._1)
       //.mapValues(_.map(_._2).sum)
       //.map(x=>(x._1,x._2.map(y => y._2).sum)).maxBy(_._2)
@@ -51,6 +55,9 @@ object Dataset {
       * @return the name and amount of commits for the top committer.
       */
     def topCommitter(input: List[Commit], repo: String): (String, Int) = ???
+//        val name = input.sortBy(_.stats.map(x => x.total)).take(1)
+//          .sortBy(_.stats.map(x => x.total)).take(1)
+//          .map(commits => commits.author.name
 
     /** Q19 (9p)
       * For each repository, output the name and the amount of commits that were made to this repository in 2019 only.
@@ -69,4 +76,11 @@ object Dataset {
       * @return 5 tuples containing the file extension and frequency of the most frequently appeared file types, ordered descendingly.
       */
     def topFileFormats(input: List[Commit]): List[(String, Int)] = ???
+//        print(input.map(x => x.files.flatMap(y => y.filename)
+//          .filter(_.matches("(*[.]*)"))))
+//
+//        val a: List[(String, Int)] = ("a",1):: Nil
+//        a
+//    }
+//        .endsWith(".js")))).groupBy(_._1))
 }
