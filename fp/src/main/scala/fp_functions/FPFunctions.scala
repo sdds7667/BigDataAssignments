@@ -52,7 +52,7 @@ object FPFunctions {
 
     /** Q10 (5p)
       * Takes `f` of 2 arguments and an `init` value and combines the elements by applying `f` on the result of each previous application.
- *
+      *
       * @param xs the list to fold.
       * @param f the fold function.
       * @param init the initial value.
@@ -77,7 +77,19 @@ def foldL[A, B](xs: List[A], f: (B, A) => B, init: B): B = xs match {
       * @tparam B the result type of the fold function.
       * @return the result of folding `xs` with `f`.
       */
-    def foldR[A, B](xs: List[A], f: (A, B) => B, init: B): B = foldL( xs.reverse, ( x:B, y: A) => f(y, x) , init)
+    def foldR[A, B](xs: List[A], f: (A, B) => B, init: B): B = foldL( rev(xs), ( x:B, y: A) => f(y, x) , init)
+
+    /** HELPER FUNCTION
+      * Reverse the list.
+      *
+      * @param xs the list to reverse
+      * @return the result of reversing `xs`
+      */
+    def rev[A](xs: List[A]): List[A] = xs match {
+        case Nil => Nil
+        case x :: list => x :: rev(list)
+    }
+
     /** Q12 (5p)
       * Returns a iterable collection formed by iterating over the corresponding items of `xs` and `ys`.
       * @param xs the first list.
@@ -87,7 +99,8 @@ def foldL[A, B](xs: List[A], f: (B, A) => B, init: B): B = xs match {
       * @return a list of tuples of items in `xs` and `ys`.
       */
     def zip[A, B](xs: List[A], ys: List[B]): List[(A, B)] = (xs, ys) match {
-        case (Nil, Nil) => Nil
+
+    case (Nil, Nil) => Nil
         case (Nil, i) => Nil
         case (j, Nil) => Nil
         case (i :: tail1, j :: tail2) => (i, j) :: zip (tail1, tail2)
