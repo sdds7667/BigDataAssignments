@@ -1,5 +1,7 @@
 package fp_functions
 
+import scala.annotation.tailrec
+
 /**
   * This part is about implementing several functions that are very common in functional programming.
   * For the exercises in this part you are _not_ allowed to use library functions.
@@ -19,7 +21,7 @@ object FPFunctions {
       * @return a list of all items in `xs` mapped with `f`.
       */
     def map[A, B](xs: List[A], f: A => B): List[B] = xs match {
-        case Nil => List.empty[B]
+        case Nil => Nil
         case i :: tail => f(i) :: map(tail, f)
     }
 
@@ -31,7 +33,7 @@ object FPFunctions {
       * @return a list of all items in `xs` that satisfy `f`.
       */
     def filter[A](xs: List[A], f: A => Boolean): List[A] = xs match {
-        case Nil => List.empty[A]
+        case Nil => Nil
         case i::tail => if (f(i)) i::filter(tail, f) else filter(tail, f)
     }
 
@@ -43,13 +45,14 @@ object FPFunctions {
       * @return one list containing all items in `xs`.
       */
     def recFlat(xs: List[Any]): List[Any] = xs match {
-        case Nil => List.empty[Any]
+        case Nil => Nil
         case (i:List[Any]) :: tail => recFlat(recFlat(i)) ::: recFlat(tail)
         case i :: tail => i :: recFlat(tail)
     }
 
     /** Q10 (5p)
       * Takes `f` of 2 arguments and an `init` value and combines the elements by applying `f` on the result of each previous application.
+      *
       * @param xs the list to fold.
       * @param f the fold function.
       * @param init the initial value.
@@ -57,7 +60,8 @@ object FPFunctions {
       * @tparam B the result type of the fold function.
       * @return the result of folding `xs` with `f`.
       */
-    def foldL[A, B](xs: List[A], f: (B, A) => B, init: B): B = xs match {
+    @tailrec
+def foldL[A, B](xs: List[A], f: (B, A) => B, init: B): B = xs match {
         case Nil => init
         case i :: tail => foldL(tail, f, f(init, i))
     }
@@ -73,7 +77,19 @@ object FPFunctions {
       * @tparam B the result type of the fold function.
       * @return the result of folding `xs` with `f`.
       */
-    def foldR[A, B](xs: List[A], f: (A, B) => B, init: B): B = foldL( xs.reverse, ( x:B, y: A) => f(y, x) , init)
+    def foldR[A, B](xs: List[A], f: (A, B) => B, init: B): B = foldL( rev(xs), ( x:B, y: A) => f(y, x) , init)
+
+    /** HELPER FUNCTION
+      * Reverse the list.
+      *
+      * @param xs the list to reverse
+      * @return the result of reversing `xs`
+      */
+    def rev[A](xs: List[A]): List[A] = xs match {
+        case Nil => Nil
+        case x :: list => x :: rev(list)
+    }
+
     /** Q12 (5p)
       * Returns a iterable collection formed by iterating over the corresponding items of `xs` and `ys`.
       * @param xs the first list.
@@ -83,9 +99,10 @@ object FPFunctions {
       * @return a list of tuples of items in `xs` and `ys`.
       */
     def zip[A, B](xs: List[A], ys: List[B]): List[(A, B)] = (xs, ys) match {
-        case (Nil, Nil) => List.empty[(A, B)]
-        case (Nil, i) => List.empty[(A, B)]
-        case (j, Nil) => List.empty[(A, B)]
+
+    case (Nil, Nil) => Nil
+        case (Nil, i) => Nil
+        case (j, Nil) => Nil
         case (i :: tail1, j :: tail2) => (i, j) :: zip (tail1, tail2)
     }
 }
