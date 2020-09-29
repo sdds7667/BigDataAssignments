@@ -55,7 +55,7 @@ object Dataset {
       * @return the name and amount of commits for the top committer.
       */
     def topCommitter(input: List[Commit], repo: String): (String, Int) = {
-        val res = input.filter(x => x.url.contains(repo)).flatMap(y => y.commit.author.name)
+        val res = input.filter(x => x.url.contains(repo)).flatMap(y => y.commit.author.name.mkString.split("\\s$"))
           .groupBy(x => x).map(z => (z._1, z._2.length))
           .toSeq.sortBy(_._2).reverse.take(1).toList
 
