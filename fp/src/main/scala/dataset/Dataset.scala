@@ -54,7 +54,17 @@ object Dataset {
       * @param repo the repository name to consider.
       * @return the name and amount of commits for the top committer.
       */
-    def topCommitter(input: List[Commit], repo: String): (String, Int) = ???
+    def topCommitter(input: List[Commit], repo: String): (String, Int) = {
+        val res = input.filter(x => x.url.contains(repo)).flatMap(y => y.commit.author.name.mkString.split("\\s$"))
+          .groupBy(x => x).map(z => (z._1, z._2.length))
+          .toSeq.sortBy(_._2).reverse.take(1).toList
+
+        val result = res match {
+            case List(a) => a
+        }
+
+        result
+    }
 //        val name = input.sortBy(_.stats.map(x => x.total)).take(1)
 //          .sortBy(_.stats.map(x => x.total)).take(1)
 //          .map(commits => commits.author.name
@@ -76,8 +86,6 @@ object Dataset {
       * @return 5 tuples containing the file extension and frequency of the most frequently appeared file types, ordered descendingly.
       */
     def topFileFormats(input: List[Commit]): List[(String, Int)] = {
-        val res = input.map(x => x.files.map(y => y.filename))
-
         val reg = """([a-zA-Z0-9\-]+)$""".r
         input.flatMap(x => x.files.flatMap(y => y.filename)).flatMap(y => reg.findAllIn(y)).groupBy(x => x)
         .map(z => (z._1, z._2.length)).toSeq.sortBy(_._2).reverse.take(5).toList
