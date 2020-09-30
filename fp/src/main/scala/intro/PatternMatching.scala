@@ -74,7 +74,6 @@ object PatternMatching {
       *
       * Hint: you can use if statements in pattern matching.
       */
-    @tailrec
     def firstDivByX(xs: List[Int], n: Int): OptionalNum = xs match {
         case Nil => Nothing()
         case i :: tail => if (i % n == 0) Num(i) else firstDivByX(tail, n)

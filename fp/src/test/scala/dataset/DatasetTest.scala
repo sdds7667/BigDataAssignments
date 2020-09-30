@@ -11,37 +11,37 @@ import scala.io.Source
 
 class DatasetTest extends FunSuite {
 
-    implicit val formats: AnyRef with Formats = Serialization.formats(NoTypeHints)
-    val source: List[Commit] = Source.fromResource("1000_commits.json").getLines().map(Serialization.read[Commit]).toList
+  implicit val formats: AnyRef with Formats = Serialization.formats(NoTypeHints)
+  val source: List[Commit] = Source.fromResource("1000_commits.json").getLines().map(Serialization.read[Commit]).toList
 
-    test("Average additions"){
-        assertResult(3137) {
-            avgAdditions(source)
-        }
+  test("Average additions") {
+    assertResult(3137) {
+      avgAdditions(source)
     }
+  }
 
-    test("Time of day javascript") {
-        assertResult((12, 830)) {
-            println(jsTime(source))
-            (12, 860)
-        }
+  test("Time of day javascript") {
+    assertResult((12, 830)) {
+      jsTime(source)
     }
+  }
 
-    test("Top committer") {
-        assertResult(("Leonid Plyushch", 12)) {
-            topCommitter(source, "termux/termux-packages")
-        }
+  test("Top committer") {
+    assertResult(("Leonid Plyushch", 12)) {
+      topCommitter(source, "termux/termux-packages")
     }
+  }
 
-    test("Commits per repo") {
-        assertResult(read[Map[String, Int]](Source.fromResource("commits_per_repo.json").mkString)) {
-            commitsPerRepo(source)
-        }
+  test("Commits per repo") {
+    assertResult(read[Map[String, Int]](Source.fromResource("commits_per_repo.json").mkString)) {
+      println(commitsPerRepo(source))
+      commitsPerRepo(source)
     }
+  }
 
-    test("Top languages") {
-        assertResult(List(("html",910), ("js",848), ("json",554), ("png",434), ("md",408))) {
-            topFileFormats(source)
-        }
+  test("Top languages") {
+    assertResult(List(("html", 910), ("js", 848), ("json", 554), ("png", 434), ("md", 408))) {
+      topFileFormats(source)
     }
+  }
 }
