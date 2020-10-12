@@ -9,7 +9,7 @@ echo "-- Q1 --"
 # Example output:
 # 14 book
 # 10 cover
-mostCommonWords=$(cat 00-intro.txt 01-chapter1.txt 02-chapter2.txt| grep -o -i '[a-zA-Z’'\''-]*' | sort -f | uniq -ic | sort -rn | tr '[:upper:]' '[:lower:]'| head -n 10 )
+mostCommonWords=$(cat 00-intro.txt 01-chapter1.txt 02-chapter2.txt | grep -o -i '[a-zA-Z’'\''-]*' | sort -f | uniq -ic | sort -rn | tr '[:upper:]' '[:lower:]' | head -n 10)
 # Prints the mostCommonWords
 echo "Most common words in my book:"
 echo "$mostCommonWords"
@@ -27,7 +27,7 @@ echo "-- Q2 --"
 #
 # Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts
 # Separated they live in Bookmarksgrove right at the coast of the Semantics, a large language ocean
-linesFromTheBook=$(cat 00-intro.txt 01-chapter1.txt 02-chapter2.txt| tr "." "\n" | sed "s/^[ ]*//"| sed "/^$/d" | head -n 7)
+linesFromTheBook=$(cat 00-intro.txt 01-chapter1.txt 02-chapter2.txt | tr "." "\n" | sed "s/^[ ]*//" | sed "/^$/d" | head -n 7)
 echo "Listing of lines from the book:"
 echo "$linesFromTheBook"
 
@@ -38,7 +38,7 @@ echo "-- Q3 --"
 # It seems that the writer of the book mistyped the word "I" and used a lower case "i" instead.
 # Write a pipeline that finds all the text files and replaces all the words "i" with its upper case variant.
 # Make sure that it is NOT in line and that the output book is in its original ordered.
-fixedBook=$(sed 's/\bi\b/I/g' 00-intro.txt 01-chapter1.txt 02-chapter2.txt )
+fixedBook=$(sed 's/\bi\b/I/g' 00-intro.txt 01-chapter1.txt 02-chapter2.txt)
 echo "The corrected book:"
 echo "$fixedBook"
 echo "--------"

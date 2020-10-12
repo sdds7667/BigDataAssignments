@@ -5,4 +5,4 @@
 # This script should take an output name as first parameter
 # If called in a directory it should recursively find all the .sh files and add them to a zip
 # So the zip should only contain .sh files and no folders.
-find ./*/ -type f -name "*.sh"| zip -j $1 -@
+find ./*/ -type f -name "*.sh" | zip -j $1 -@

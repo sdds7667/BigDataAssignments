@@ -10,4 +10,3 @@
 # It could take some time to convert all of access_log. Consider using a small subset for testing.
 
 awk '{print $1 "," substr($4,2) "," substr($6,2) "," $7 "," $9 "," $10}' $1
-
