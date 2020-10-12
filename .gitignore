@@ -3,3 +3,5 @@
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+
+3-spark/data/data_raw.json
