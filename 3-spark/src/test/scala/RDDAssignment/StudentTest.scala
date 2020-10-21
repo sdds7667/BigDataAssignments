@@ -25,7 +25,7 @@ class StudentTest extends FunSuite with BeforeAndAfterAll {
 
   import spark.implicits._
 
-  val commitDF: DataFrame = Loader.loadJSON(Path("data/data_raw.json"))
+  val commitDF: DataFrame = Loader.loadJSON(Path("3-spark/data/data_raw.json"))
   commitDF.cache()
 
   val commitRDD = commitDF.as[Commit].rdd
@@ -39,6 +39,7 @@ class StudentTest extends FunSuite with BeforeAndAfterAll {
 
   test("Assert RDD assignment 2") {
     val studentResult: RDD[(String, Long)] = RDDAssignment.assignment_2(commitRDD)
+    print(studentResult.collect().mkString("Array(", ", ", ")"))
     val expectedSet = Set(("cmake", 13L), ("png", 4467L))
     assertResult(expectedSet) {
       studentResult.collect().toSet.intersect(expectedSet)
@@ -48,9 +49,10 @@ class StudentTest extends FunSuite with BeforeAndAfterAll {
 
   test("Assert RDD assignment 3") {
     val studentResult: RDD[(Long, String, Long)] = RDDAssignment.assignment_3(commitRDD)
-    val expected = Set((8L, "Otto Taute", 34L), (9L, "SpeedTracker", 33L), (95L, "John", 8L))
+    print(studentResult.collect().take(30).mkString("Array(", ", ", ")"))
+    val expected = Set((8L, "Otto Taute", 34L), (26L, "Leonid Plyushch", 16), (27L, "root", 16L), (28L, "Unknown", 16L))
     assertResult(expected) {
-      studentResult.take(96).toSet.intersect(expected)
+      studentResult.take(30).toSet.intersect(expected)
     }
   }
 
@@ -62,10 +64,13 @@ class StudentTest extends FunSuite with BeforeAndAfterAll {
     }
   }
 
+
   test("Assert RDD assignment 5") {
     val expectedSubset = Set("EdenStrive", "Paul Blackmore", "nextgis")
+    val studentRes = RDDAssignment.assignment_5(commitRDD)
+    print(studentRes.take(5).mkString("Array(", ", ", ")"))
     assertResult(3) {
-      RDDAssignment.assignment_5(commitRDD).filter(x => expectedSubset.contains(x)).count()
+      studentRes.filter(x => expectedSubset.contains(x)).count()
     }
   }
 

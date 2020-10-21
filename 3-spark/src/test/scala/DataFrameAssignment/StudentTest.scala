@@ -27,7 +27,7 @@ class StudentTest extends FunSuite with BeforeAndAfterAll {
 
   import spark.implicits._
 
-  val commitDF: DataFrame = Loader.loadJSON(Path("data/data_raw.json"))
+  val commitDF: DataFrame = Loader.loadJSON(Path("3-spark/data/data_raw.json"))
   commitDF.cache()
 
   val commitRDD = commitDF.as[Commit].rdd
