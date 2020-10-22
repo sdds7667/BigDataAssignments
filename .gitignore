@@ -7,3 +7,5 @@
 3-spark/data/data_raw.json
 1-unix/data/*
 1-unix/**/*.txt
+
+4-flink/data/*
