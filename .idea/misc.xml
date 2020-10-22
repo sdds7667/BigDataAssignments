@@ -5,6 +5,7 @@
       <list>
         <option value="$PROJECT_DIR$/3-spark/pom.xml" />
         <option value="$PROJECT_DIR$/2-functional-programming/pom.xml" />
+        <option value="$PROJECT_DIR$/4-flink/pom.xml" />
       </list>
     </option>
   </component>

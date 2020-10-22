@@ -13,5 +13,6 @@
         <parameter value="C:\Users\inplm\Documents\School\2020-2021\Q1\CSE2520 BigData\Assignments\2-functional-programming\target/.scala_dependencies" />
       </parameters>
     </profile>
+    <profile name="Maven 3" modules="flink" />
   </component>
 </project>

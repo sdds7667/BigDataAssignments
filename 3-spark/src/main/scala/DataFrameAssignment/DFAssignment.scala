@@ -3,6 +3,9 @@ package DataFrameAssignment
 import java.sql.Timestamp
 
 import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.expressions.Window
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.{IntegerType, LongType}
 
 /**
  * Note read the comments carefully, as they describe the expected result and may contain hints in how
@@ -29,7 +32,16 @@ object DFAssignment {
    *                SHA's.
    * @return DataFrame of commits from the requested authors, including the commit SHA and the according timestamp.
    */
-  def assignment_1(commits: DataFrame, authors: Seq[String]): DataFrame = ???
+  def assignment_1(commits: DataFrame, authors: Seq[String]): DataFrame = {
+    val x = commits.withColumn("committer", commits.col("commit.committer.name"))
+      .withColumn("timestamp", commits.col("commit.committer.date"))
+      .select("committer", "sha", "timestamp")
+      .filter(commits.col("commit.committer.name").isin(authors: _*))
+      .orderBy(asc("timestamp"))
+
+    x.show()
+    x
+  }
 
   /**
    * In order to generate weekly dashboards for all projects, we need the data to be partitioned by weeks. As projects
@@ -45,7 +57,24 @@ object DFAssignment {
    * @return Dataframe containing 4 columns, Repository name, week number, year and the number fo commits for that
    *         week.
    */
-  def assignment_2(commits: DataFrame): DataFrame = ???
+  def assignment_2(commits: DataFrame): DataFrame = {
+    commits.printSchema()
+    val window = Window.partitionBy("repository", "year")
+      .orderBy("repository", "year")
+
+    val extract_repo_name: String => String = fExtractRepoName(_)
+    val repo_udf = udf(extract_repo_name)
+
+    val x = commits.withColumn("new_date", to_timestamp(col("commit.author.date")))
+      .withColumn("year", year(col("new_date")))
+      .withColumn("week", weekofyear(col("new_date")))
+      .withColumn("repository", repo_udf(col("url")))
+      .withColumn("count", count(col("commit.committer.date")).over(window))
+      .select("repository", "week", "year", "count")
+      .dropDuplicates()
+    x.show()
+    x
+  }
 
   /**
    * A developer is interested in the age of commits in seconds, although this is something that can always be
@@ -65,7 +94,14 @@ object DFAssignment {
    * @param commits Commit Dataframe, created from the data_raw.json file.
    * @return the inputted DataFrame appended with an age column.
    */
-  def assignment_3(commits: DataFrame, snapShotTimestamp: Timestamp): DataFrame = ???
+  def assignment_3(commits: DataFrame, snapShotTimestamp: Timestamp): DataFrame = {
+    commits.printSchema()
+    // snapShotTimestamp = 2019-10-10 13:30:29.0
+    val x = commits
+      .withColumn("age", (lit(snapShotTimestamp)).cast(LongType) - to_timestamp(col("commit.committer.date")).cast(LongType))
+    x.show()
+    x
+  }
 
   /**
    * To perform analysis on commit behavior the intermediate time of commits is needed. We require that the DataFrame
@@ -90,7 +126,24 @@ object DFAssignment {
    * @param authorName Name of the author for which the result must be generated.
    * @return DataFrame with column expressing days since last commit.
    */
-  def assignment_4(commits: DataFrame, authorName: String): DataFrame = ???
+  def assignment_4(commits: DataFrame, authorName: String): DataFrame = {
+    commits.printSchema()
+    val window = Window.partitionBy("commit.committer.name")
+      .orderBy(asc("commit.committer.date"))
+
+    val x = commits
+      .withColumn("prev", to_timestamp(lag("commit.committer.date", 1).over(window)))
+      .withColumn("new_date", to_timestamp(col("commit.committer.date")))
+      .withColumn("time_diff", round((col("new_date").cast(LongType) - col("prev").cast(LongType)) / 86400).cast(IntegerType))
+      .select("_id.$oid", "commit.committer.name", "commit.committer.date", "time_diff")
+      .filter(col("commit.committer.name").equalTo(authorName))
+      .orderBy(asc("commit.committer.date"))
+      .na.fill(0)
+
+    x.show()
+    x
+  }
+
 
   /**
    * To get a bit of insight in the spark SQL, and its aggregation functions, you will have to implement a function
@@ -109,7 +162,24 @@ object DFAssignment {
    * @return DataFrame containing a `day` column and a `commits_per_day` representing a count of the total number of
    *         commits that that were ever made on that week day.
    */
-  def assignment_5(commits: DataFrame): DataFrame = ???
+  def assignment_5(commits: DataFrame): DataFrame = {
+    //Expected Set((7,7), (4,71), (3,34), (1,9), (2,31), (5,1816), (6,20)),
+    // but got Set((3,35), (7,6), (4,68), (1,10), (6,21), (5,1818), (2,30))
+    commits.printSchema()
+    val window = Window.partitionBy("day")
+      .orderBy(asc("day"))
+
+    val x = commits
+      .withColumn("new_date", to_timestamp(col("commit.committer.date")))
+      .withColumn("day", dayofweek(col("new_date")))
+      .withColumn("commits_per_day", count(col("day")).over(window))
+      .select("day", "commits_per_day")
+      .orderBy(asc("day"))
+      .na.fill(0)
+
+    x.show()
+    x
+  }
 
   /**
    * Commits can be uploaded on different days, we want to get insight in difference in commit time of the author and
@@ -129,11 +199,23 @@ object DFAssignment {
    * @return original Dataframe appended with a column `commit_time_diff` containing the number of seconds time
    *         difference between authorizing and committing.
    */
-  def assignment_6(commits: DataFrame): DataFrame = ???
+  def assignment_6(commits: DataFrame): DataFrame = {
+    commits.printSchema()
+    val x = commits
+      .withColumn("auth", to_timestamp(col("commit.author.date")))
+      .withColumn("com", to_timestamp(col("commit.committer.date")))
+      .withColumn("diff", col("com").cast(LongType) - col("auth").cast(LongType))
+      .withColumn("commit_time_diff", col("diff"))
+      .select("commit_time_diff")
+
+    x.show()
+    x
+    //Cannot resolve column name "auth" among (_id, author, commit, committer, files, node_id, parents, sha, stats, url);
+  }
 
   /**
    * Using Dataframes find all the commit SHA's from which a branch was created, including the number of
-   * branches that were made. Only take the SHA's into account if they are also contained in the RDD.
+   * branches that were made. Only take the SHA's into account if they are also contained in the DataFrame.
    * Note that the returned Dataframe should not contain any SHA's of which no new branches were made, and should not
    * contain a SHA which is not contained in the given Dataframe.
    *
@@ -148,7 +230,18 @@ object DFAssignment {
    *                `println(commits.schema)`.
    * @return DataFrame containing the SHAs of which a new branch was made.
    */
-  def assignment_7(commits: DataFrame): DataFrame = ???
+  def assignment_7(commits: DataFrame): DataFrame = {
+    // commit.tree.sha
+    // what branch?
+    commits.printSchema()
+    val x = commits
+      //      .withColumn("auth", to_timestamp(commits.col("commit.author.date")))
+      .select("commit.tree.*")
+    //      .filter(commits.col("commit.tree.sha").equalTo(commits.rdd))
+
+    x.show()
+    x
+  }
 
   /**
    * Find of commits from which a fork was created in the given commit DataFrame. We are interested in the name of
@@ -170,5 +263,28 @@ object DFAssignment {
    *                `println(commits.schema)`.
    * @return DataFrame containing the SHAs of which a new fork was created.
    */
-  def assignment_8(commits: DataFrame): DataFrame = ???
+  def assignment_8(commits: DataFrame): DataFrame = {
+    val extract_repo_name: String => String = fExtractRepoName(_)
+    val repo_udf = udf(extract_repo_name)
+
+    val extract_user_name: String => String = fExtractUserName(_)
+    val user_udf = udf(extract_user_name)
+    val x = commits.select("url", "commit.tree", "parents")
+      .withColumn("repoName", repo_udf(col("url")))
+      .withColumn("user", user_udf(col("url")))
+      .withColumn("int_sha", element_at(col("parents"), 1))
+      .filter(col("url").contains("nantesjs-website"))
+    x.show()
+    x
+  }
+
+  def fExtractUserName(url: String): String = {
+    val beginIndex = url.indexOf("repos/") + 7
+    url.substring(beginIndex, url.indexOf("/", beginIndex + 1))
+  }
+
+  def fExtractRepoName(url: String): String = {
+    val beginIndex = url.indexOf("/", url.indexOf("repos/") + 7)
+    url.substring(beginIndex + 1, url.indexOf("/", beginIndex + 1))
+  }
 }

@@ -1,7 +1,6 @@
 package RDDAssignment
 
-import java.util.UUID
-
+import java.util.{NoSuchElementException, UUID}
 import java.math.BigInteger
 import java.security.MessageDigest
 
@@ -32,10 +31,25 @@ object RDDAssignment {
    * @return RDD containing tuples indicating the programming language (extension) and number of occurrences.
    */
   def assignment_2(commits: RDD[Commit]): RDD[(String, Long)] = {
-    commits.flatMap(commit => commit.files.flatMap(fileOption => fileOption.filename))
+    commits.flatMap(x => x.files.flatMap(y => y.filename))
       .filter(x => x.lastIndexOf(".") != -1)
-      .map(x => x.substring(x.lastIndexOf(".") + 1))
+      .filter(x => x.lastIndexOf(".") > x.lastIndexOf("/"))
+      .filter(x => x.lastIndexOf(".") != 0)
+      .map(x => extract_extension(x))
+      .filter(x => !x.equals("...."))
       .groupBy(x => x).map(x => (x._1, x._2.size))
+  }
+
+  def extract_extension(s: String): String = {
+    val reg = """([a-zA-Z0-9\-]+)$""".r
+    try {
+      reg.findFirstIn(s).get
+    } catch {
+      case e: NoSuchElementException => {
+        println(s);
+        "...."
+      }
+    }
   }
 
   /**
@@ -84,7 +98,7 @@ object RDDAssignment {
   def assignment_5(commits: RDD[Commit]): RDD[String] = {
 
     commits.flatMap(c => Array((c.url.substring(c.url.indexOf("repos/") + 6, c.url.indexOf("/",
-      c.url.indexOf("repos/") + 7)), 0, 1), (c.commit.committer.name, 1, 0)))
+      c.url.indexOf("repos/") + 7)), 0, 1), (c.commit.author.name, 1, 0)))
       .groupBy(_._1).map(x => (x._1, x._2.foldLeft((0, 0))((b, i) => (b._1 + i._2, b._2 + i._3))))
       .filter(c => (c._2._1 == 0 || c._2._2 == 0)).map(x => x._1)
   }
