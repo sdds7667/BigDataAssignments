@@ -1,30 +1,22 @@
-import java.{lang, util}
-import java.text.SimpleDateFormat
-import java.time.format.DateTimeFormatter
+import java.util
 import java.util.Date
 
-import org.apache.calcite.avatica.util.DateTimeUtils.{newDateFormat, unixDateToString, unixTimestampToString}
-import org.apache.flink.streaming.api.TimeCharacteristic
-import org.apache.flink.streaming.api.scala.{AllWindowedStream, DataStream, StreamExecutionEnvironment}
+import _root_.util.Protocol._
+import _root_.util.{CommitGeoParser, CommitParser}
 import org.apache.flink.api.scala._
 import org.apache.flink.cep.functions.PatternProcessFunction
 import org.apache.flink.cep.scala.CEP
 import org.apache.flink.cep.scala.pattern.Pattern
-import org.apache.flink.configuration.Configuration
+import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks
-import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction
 import org.apache.flink.streaming.api.scala.function.ProcessAllWindowFunction
+import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import org.apache.flink.streaming.api.watermark.Watermark
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
-import org.apache.flink.table.api.scala.LiteralIntExpression
-import org.apache.flink.table.shaded.org.joda.time.{DateTime, LocalDate}
+import org.apache.flink.table.shaded.org.joda.time.DateTime
 import org.apache.flink.util.Collector
-import _root_.util.Protocol.{Commit, CommitGeo, CommitSummary, File, Stats}
-import _root_.util.{CommitGeoParser, CommitParser}
-
-import scala.collection.convert.ImplicitConversions.`iterable AsScalaIterable`
 
 /** Do NOT rename this class, otherwise autograding will fail. * */
 object FlinkAssignment {
@@ -103,8 +95,16 @@ object FlinkAssignment {
    * Count the total amount of changes for each file status (e.g. modified, removed or added) for the following extensions: .js and .py.
    * Output format: (extension, status, count)
    */
-  def question_four(
-                     input: DataStream[Commit]): DataStream[(String, String, Int)] = ???
+  def question_four(input: DataStream[Commit]): DataStream[(String, String, Int)] = ???
+//    input.flatMap(x => (x.files.filter(y => y.filename.isDefined)
+//      .map(y => y.filename.get).filter(z => (z.endsWith(".py") || z.endsWith(".js")))))
+//
+//
+//    //      x.files.flatMap(s => s.status).flatMap(t => t.count())))
+////      .map(z => (z.substring(z.lastIndexOf(".") + 1), 1)).keyBy(x => x._1)
+////      .flatMap(s => s._)
+////      .reduce((a, b) => (a._1, a._2 + b._2))
+
 
   /**
    * For every day output the amount of commits. Include the timestamp in the following format dd-MM-yyyy; e.g. (26-06-2019, 4) meaning on the 26th of June 2019 there were 4 commits.
@@ -132,7 +132,15 @@ object FlinkAssignment {
    * Compute every 12 hours the amount of small and large commits in the last 48 hours.
    * Output format: (type, count)
    */
-  def question_six(input: DataStream[Commit]): DataStream[(String, Int)] = ???
+  def question_six(input: DataStream[Commit]): DataStream[(String, Int)] = {
+    val typ = ""
+    input.map(x => x.files.map(y => y.changes))
+      .map(z => (z, 1))
+      .keyBy(x => x._1)
+      .timeWindow(Time.hours(48), Time.hours(12))
+      .sum(2)
+      .map(s => if (s._2 > 20) ("large", s._2) else ("small", s._2))
+  }
 
   /**
    * For each repository compute a daily commit summary and output the summaries with more than 20 commits and at most 2 unique committers. The CommitSummary case class is already defined.
@@ -164,7 +172,7 @@ object FlinkAssignment {
       override def extractTimestamp(element: (String, String, Int, Date), previousElementTimestamp: Long): Long = {
         element._4.getTime
       }
-    };
+    }
 
     class ProcessDays extends ProcessAllWindowFunction[(String, String, Int, Date), CommitSummary, TimeWindow] {
       override def process(context: Context, elements: Iterable[(String, String, Int, Date)], out: Collector[CommitSummary]): Unit = {
@@ -208,8 +216,7 @@ object FlinkAssignment {
    * Hint: Find the correct join to use!
    * Output format: (continent, amount)
    */
-  def question_eight(
-                      commitStream: DataStream[Commit],
+  def question_eight(commitStream: DataStream[Commit],
                       geoStream: DataStream[CommitGeo]): DataStream[(String, Int)] = ???
 
   /**
