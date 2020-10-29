@@ -12,7 +12,7 @@ import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks
 import org.apache.flink.streaming.api.scala.function.ProcessAllWindowFunction
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import org.apache.flink.streaming.api.watermark.Watermark
-import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
+import org.apache.flink.streaming.api.windowing.assigners.{SlidingEventTimeWindows, TumblingEventTimeWindows}
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import org.apache.flink.table.shaded.org.joda.time.DateTime
@@ -49,7 +49,8 @@ object FlinkAssignment {
     // dummy_question(commitStream).print()
     // question_one(commitStream).print()
     //question_three(commitStream).print()
-    question_nine(commitStream).print()
+    //question_nine(commitStream).print()
+    question_six(commitStream).print()
 
 
     /** Start the streaming environment. * */
@@ -98,7 +99,7 @@ object FlinkAssignment {
   def question_four(input: DataStream[Commit]): DataStream[(String, String, Int)] = ???
 //    input.flatMap(x => (x.files.filter(y => y.filename.isDefined)
 //      .map(y => y.filename.get).filter(z => (z.endsWith(".py") || z.endsWith(".js")))))
-//
+//      .
 //
 //    //      x.files.flatMap(s => s.status).flatMap(t => t.count())))
 ////      .map(z => (z.substring(z.lastIndexOf(".") + 1), 1)).keyBy(x => x._1)
@@ -132,13 +133,19 @@ object FlinkAssignment {
    * Compute every 12 hours the amount of small and large commits in the last 48 hours.
    * Output format: (type, count)
    */
-  def question_six(input: DataStream[Commit]): DataStream[(String, Int)] = {
-    val typ = ""
-    input.map(x => x.files.map(y => y.changes))
+  def question_six(input: DataStream[Commit]): DataStream[(String, Int)] =
+  {
+    input
+      .assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks[Commit] {
+        override def getCurrentWatermark: Watermark = new Watermark(0)
+
+        override def extractTimestamp(t: Commit, l: Long): Long = t.commit.committer.date.getTime
+      })
+      .map(x => x.stats.get.total)
       .map(z => (z, 1))
       .keyBy(x => x._1)
-      .timeWindow(Time.hours(48), Time.hours(12))
-      .sum(2)
+      .window(SlidingEventTimeWindows.of(Time.hours(48), Time.hours(12)))
+      .sum(1)
       .map(s => if (s._2 > 20) ("large", s._2) else ("small", s._2))
   }
 
@@ -218,6 +225,11 @@ object FlinkAssignment {
    */
   def question_eight(commitStream: DataStream[Commit],
                       geoStream: DataStream[CommitGeo]): DataStream[(String, Int)] = ???
+//    .map(z => (z, 1))
+//    .keyBy(x => x._1)
+//    .timeWindow(Time.hours(48), Time.hours(12))
+//    .sum(2)
+//    .map(s => if (s._2 > 20) ("large", s._2) else ("small", s._2))
 
   /**
    * Find all files that were added and removed within one day. Output as (repository, filename).
