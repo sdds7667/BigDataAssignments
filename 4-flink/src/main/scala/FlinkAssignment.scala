@@ -96,15 +96,12 @@ object FlinkAssignment {
    * Count the total amount of changes for each file status (e.g. modified, removed or added) for the following extensions: .js and .py.
    * Output format: (extension, status, count)
    */
-  def question_four(input: DataStream[Commit]): DataStream[(String, String, Int)] = ???
-//    input.flatMap(x => (x.files.filter(y => y.filename.isDefined)
-//      .map(y => y.filename.get).filter(z => (z.endsWith(".py") || z.endsWith(".js")))))
-//      .
-//
-//    //      x.files.flatMap(s => s.status).flatMap(t => t.count())))
-////      .map(z => (z.substring(z.lastIndexOf(".") + 1), 1)).keyBy(x => x._1)
-////      .flatMap(s => s._)
-////      .reduce((a, b) => (a._1, a._2 + b._2))
+  def question_four(input: DataStream[Commit]): DataStream[(String, String, Int)] = input
+    .flatMap(x => x.files.filter(y => y.filename.isDefined)
+      .map(y => (y.filename.get, y.status.get))).filter(z => (z._1.endsWith(".js") || z._1.endsWith(".py")))
+    .map(z => (z._1.substring(z._1.lastIndexOf(".") + 1), z._2, 1))
+    .keyBy(x => x._1).keyBy(y => y._2)
+    .reduce((a, b) => (a._1, a._2, a._3 + b._3))
 
 
   /**
