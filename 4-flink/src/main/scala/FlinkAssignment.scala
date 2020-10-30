@@ -58,9 +58,9 @@ object FlinkAssignment {
   }
 
   /** Dummy question which maps each commits to its SHA. */
-  def dummy_question(input: DataStream[Commit]): DataStream[String] = {
-    input.map(_.sha)
-  }
+//  def dummy_question(input: DataStream[Commit]): DataStream[String] = {
+//    input.map(_.sha)
+//  }
 
   /**
    * Write a Flink application which outputs the sha of commits with at least 20 additions.
@@ -96,11 +96,13 @@ object FlinkAssignment {
    * Count the total amount of changes for each file status (e.g. modified, removed or added) for the following extensions: .js and .py.
    * Output format: (extension, status, count)
    */
-  def question_four(input: DataStream[Commit]): DataStream[(String, String, Int)] = input
-    .flatMap(x => x.files.filter(y => y.filename.isDefined)
+  def question_four(input: DataStream[Commit]): DataStream[(String, String, Int)] =
+    input.flatMap(x => x.files.filter(y => y.filename.isDefined)
       .map(y => (y.filename.get, y.status.get))).filter(z => (z._1.endsWith(".js") || z._1.endsWith(".py")))
     .map(z => (z._1.substring(z._1.lastIndexOf(".") + 1), z._2, 1))
-    .keyBy(x => x._1).keyBy(y => y._2)
+    .keyBy(x => x._1)
+    //    .keyBy(y => y._2)
+    //    .sum(2)
     .reduce((a, b) => (a._1, a._2, a._3 + b._3))
 
 
@@ -131,20 +133,20 @@ object FlinkAssignment {
    * Output format: (type, count)
    */
   def question_six(input: DataStream[Commit]): DataStream[(String, Int)] =
-  {
-    input
-      .assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks[Commit] {
-        override def getCurrentWatermark: Watermark = new Watermark(0)
+  input
+    .assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks[Commit] {
+      override def getCurrentWatermark: Watermark = new Watermark(0)
 
-        override def extractTimestamp(t: Commit, l: Long): Long = t.commit.committer.date.getTime
-      })
-      .map(x => x.stats.get.total)
-      .map(z => (z, 1))
-      .keyBy(x => x._1)
-      .window(SlidingEventTimeWindows.of(Time.hours(48), Time.hours(12)))
-      .sum(1)
-      .map(s => if (s._2 > 20) ("large", s._2) else ("small", s._2))
-  }
+      override def extractTimestamp(t: Commit, l: Long): Long = t.commit.committer.date.getTime
+    })
+    .map(x => x.stats.get.total)
+    .map(z => (z, 1))
+    .keyBy(x => x._1)
+    .window(SlidingEventTimeWindows.of(Time.hours(48), Time.hours(12)))
+    .reduce((a, b) => (a._1, a._2 + b._2))
+    //      .sum(1)
+    .map(s => if (s._2 > 20) ("large", s._2) else ("small", s._2))
+
 
   /**
    * For each repository compute a daily commit summary and output the summaries with more than 20 commits and at most 2 unique committers. The CommitSummary case class is already defined.
