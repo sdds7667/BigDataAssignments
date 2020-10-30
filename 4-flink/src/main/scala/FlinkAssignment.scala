@@ -164,8 +164,9 @@ object FlinkAssignment {
    * Output format: CommitSummary
    */
   def repo_name(url: String): String = {
+    val begin = url.indexOf("/", url.indexOf("repos/") + 1)
     val beginIndex = url.indexOf("/", url.indexOf("repos/") + 7)
-    url.substring(beginIndex + 1, url.indexOf("/", beginIndex + 1))
+    url.substring(begin + 1, url.indexOf("/", beginIndex + 1))
   }
 
   def question_seven(commitStream: DataStream[Commit]):
@@ -199,7 +200,8 @@ object FlinkAssignment {
             val totalChanges = topCommitterCount.foldLeft(0)((b, a) => b + a._2)
             val topCommitter = topCommitterCount.filter(x => x._2 != topCommitterCount.head._2)
               .foldLeft("")((b, a) => b + "," + a._1)
-            out.collect(CommitSummary(repoName, date, totalCommits, totalCommitters, totalChanges, if (topCommitter.size > 1) topCommitter.substring(1) else topCommitter))
+            out.collect(CommitSummary(repoName, date, totalCommits, totalCommitters, totalChanges, topCommitter))
+            //            if (topCommitter.size > 1) topCommitter.substring(1) else
           }
         }
       }
