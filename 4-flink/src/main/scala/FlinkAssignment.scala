@@ -199,9 +199,25 @@ object FlinkAssignment {
    * Hint: Find the correct join to use!
    * Output format: (continent, amount)
    */
-  def question_eight(
-                      commitStream: DataStream[Commit],
-                      geoStream: DataStream[CommitGeo]): DataStream[(String, Int)] = ???
+  def question_eight(commitStream: DataStream[Commit], geoStream: DataStream[CommitGeo]): DataStream[(String, Int)] = ???
+//  {
+//    commitStream.assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks[Commit] {
+//      override def getCurrentWatermark: Watermark = new Watermark(0)
+//
+//      override def extractTimestamp(t: Commit, l: Long): Long = t.commit.committer.date.getTime
+//    })
+//
+//    geoStream.join(commitStream)
+//      .where(elem => elem.sha)
+//      .equalTo(b => b.sha)
+//      .window(TumblingEventTimeWindows.of(Time.days(7)))
+//      .apply((e1, e2) => e2.files.filter(y => y.filename.isDefined)
+//        .map(y => y.filename.get)
+//        .filter(z => z.endsWith(".java"))
+//        .map(z => (e1.continent, e2.files.map(a => a.changes)))
+//        .map(a => (a._1, 1))
+//        .reduce((b, c) => (b._1, b._2 + c._2)))
+//  }
 
   /**
    * Find all files that were added and removed within one day. Output as (repository, filename).
