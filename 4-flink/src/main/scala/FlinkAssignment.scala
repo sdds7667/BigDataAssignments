@@ -92,11 +92,11 @@ object FlinkAssignment {
    * Output format: (extension, status, count)
    */
   def question_four(input: DataStream[Commit]): DataStream[(String, String, Int)] = input
-    .flatMap(x => x.files.filter(y => y.filename.isDefined)
+    .flatMap(x => x.files.filter(y => y.filename.isDefined && y.status.isDefined)
       .map(y => (y.filename.get, y.status.get))).filter(z => (z._1.endsWith(".js") || z._1.endsWith(".py")))
     .map(z => (z._1.substring(z._1.lastIndexOf(".") + 1), z._2, 1))
-    .keyBy(x => x._1)
-    //    .keyBy(y => y._2)
+    .keyBy(x => x._2)
+    //    .keyBy(y => y._1)
     //    .sum(2)
     .reduce((a, b) => (a._1, a._2, a._3 + b._3))
 
